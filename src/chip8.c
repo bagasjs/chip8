@@ -249,6 +249,24 @@ void chip8_emulate_instruction(Chip8* c)
                 c->PC = inst.NNN; // set program counter to NNN
                 c->stack += 1;
             } break;
+        case 0x3:
+            {
+                if(c->V[inst.X] == inst.NN) {
+                    c->PC += 1;
+                }
+            } break;
+        case 0x4:
+            {
+                if(c->V[inst.X] != inst.NN) {
+                    c->PC += 1;
+                }
+            } break;
+        case 0x5:
+            {
+                if(c->V[inst.X] == c->V[inst.Y]) {
+                    c->PC += 1;
+                }
+            } break;
         case 0x6:
             {
                 c->V[inst.X] = inst.NN;
@@ -257,9 +275,84 @@ void chip8_emulate_instruction(Chip8* c)
             {
                 c->V[inst.X] += inst.NN;
             } break;
+        case 0x8:
+            {
+                switch(inst.N) {
+                    case 0x0:
+                        {
+                            c->V[inst.X] = c->V[inst.Y];
+                        } break;
+                    case 0x1:
+                        {
+                            c->V[inst.X] |= c->V[inst.Y];
+                        } break;
+                    case 0x2:
+                        {
+                            c->V[inst.X] &= c->V[inst.Y];
+                        } break;
+                    case 0x3:
+                        {
+                            c->V[inst.X] ^= c->V[inst.Y];
+                        } break;
+                    case 0x4:
+                        {
+                            if(c->V[inst.X] + c->V[inst.Y] > sizeof(uint8_t)) {
+                                c->V[0xF] = 1;
+                            } else {
+                                c->V[0xF] = 0;
+                            }
+                            c->V[inst.X] += c->V[inst.Y];
+                        } break;
+                    case 0x5:
+                        {
+                            if(c->V[inst.X] - c->V[inst.Y] < 0) {
+                                c->V[0xF] = 1;
+                            } else {
+                                c->V[0xF] = 0;
+                            }
+                            c->V[inst.X] += c->V[inst.Y];
+                        } break;
+                    case 0x6:
+                        {
+                            c->V[0xF] = c->V[inst.X] & 0b00000001;
+                            c->V[inst.X] >>= 1;
+                        } break;
+                    case 0x7:
+                        {
+                            if(c->V[inst.Y] - c->V[inst.X] < 0) {
+                                c->V[0xF] = 1;
+                            } else {
+                                c->V[0xF] = 0;
+                            }
+                            c->V[inst.X] = c->V[inst.Y] - c->V[inst.X];
+                        } break;
+                    case 0xE:
+                        {
+                            c->V[0xF] = c->V[inst.X] & 0b10000000;
+                            c->V[inst.X] <<= 1;
+                        } break;
+                    default:
+                        {
+                        } break;
+                }
+            } break;
+        case 0x9:
+            {
+                if(c->V[inst.X] != c->V[inst.Y]) {
+                    c->PC += 1;
+                }
+            } break;
         case 0xA:
             {
                 c->I = inst.NNN;
+            } break;
+        case 0xB:
+            {
+                c->PC = c->V[0] + inst.NNN;
+            } break;
+        case 0xC:
+            {
+                c->V[inst.X] = (uint8_t)GetRandomValue(0, (int)sizeof(uint8_t)) & inst.NN;
             } break;
         case 0xD:
             {
